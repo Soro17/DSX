@@ -85,7 +85,7 @@ server/
   auth.js     accounts (scrypt), sessions
   db.js       SQLite schema
 public/
-  index.html, trade.html, img/ag-mark.svg
+  index.html, trade.html, img/dsx-mark.svg
   css/base.css (design system), home.css, trade.css
   js/common.js, home.js, trade.js, solana3d.js
 test/engine.test.js

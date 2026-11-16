@@ -182,7 +182,7 @@ export function sparkline(values, { width = 120, height = 36, fill = true } = {}
 
 // ---------------------------------------------------------------- brand
 export function brandHTML() {
-  return '<span class="brand"><img src="/img/ag-mark.svg" alt="" width="34" height="34"><span class="brand-word"><b>DSX</b><span>EXCHANGE</span></span></span>';
+  return '<span class="brand"><img src="/img/dsx-mark.svg" alt="" width="34" height="34"><span class="brand-word"><b>DSX</b><span>EXCHANGE</span></span></span>';
 }
 
 // ---------------------------------------------------------------- session
