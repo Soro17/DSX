@@ -6,12 +6,23 @@ A multi-asset trading platform with **live market prices** and **leveraged demo 
 
 Requires **Node.js 22.5+**.
 
-- **Windows:** double-click **START-DSX** inside the extracted folder.
-- **Any OS:**
-  ```bash
-  npm install
-  npm start
-  ```
+### Windows desktop app
+
+1. Extract the ZIP.
+2. Double-click **DSX** (`DSX.vbs`) in the extracted folder.
+
+The first run installs everything and adds a **DSX shortcut to your Desktop and Start menu**. After that, open DSX from the shortcut. It opens in its own app window (Edge or Chrome app mode) with no browser tabs and no console window.
+
+The server runs hidden in the background. When you close the window, it shuts down by itself after a minute. It keeps running while you have open positions or orders, so stop losses, take profits, liquidations and limit orders keep working. Server logs go to `data\dsx.log`.
+
+`START-DSX.bat` still works if you prefer a visible console.
+
+### Any OS
+
+```bash
+npm install
+npm start
+```
 
 Then open http://localhost:3000.
 

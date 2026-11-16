@@ -170,6 +170,25 @@ engine.events.on('account', (userId, event) => {
   for (const ws of socketsByUser.get(userId) || []) if (ws.readyState === ws.OPEN) ws.send(msg);
 });
 
+// ---------------------------------------------------------------- desktop app mode
+// When started by the DSX desktop launcher (DSX_APP=1) the server runs hidden. It stops by itself
+// once the app window has been closed for a while — but never while positions or orders are open,
+// so stop losses, take profits, liquidations and limit orders keep working in the background.
+if (process.env.DSX_APP === '1') {
+  const idleMs = Number(process.env.DSX_IDLE_EXIT_MS) || 60_000;
+  const startGraceMs = Number(process.env.DSX_START_GRACE_MS) || 120_000; // time for the window to open
+  const startedAt = Date.now();
+  let idleSince = Date.now();
+  setInterval(() => {
+    if (wss.clients.size > 0) { idleSince = Date.now(); return; }
+    if (Date.now() - startedAt < startGraceMs) return;
+    if (Date.now() - idleSince < idleMs) return;
+    if (engine.hasOpenWork()) return;
+    console.log('[app] window closed and nothing open — shutting down');
+    process.exit(0);
+  }, Math.min(5_000, idleMs / 2)).unref?.();
+}
+
 // ---------------------------------------------------------------- boot
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {

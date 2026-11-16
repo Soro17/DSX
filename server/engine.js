@@ -368,6 +368,11 @@ function account(userId) {
   };
 }
 
+/** True while any account has open positions or resting orders that need live price checks. */
+function hasOpenWork() {
+  return !!db.prepare("SELECT 1 FROM positions WHERE status = 'open' UNION ALL SELECT 1 FROM trade_orders WHERE status = 'open' LIMIT 1").get();
+}
+
 function resetAccount(userId) {
   tx(() => {
     db.prepare('DELETE FROM trade_orders WHERE user_id = ?').run(userId);
@@ -405,5 +410,5 @@ prices.feed.on('tick', onTick);
 module.exports = {
   FEE_RATE, MAINT_MARGIN_RATE, MIN_NOTIONAL, MAX_LEVERAGE, events,
   placeOrder, cancelOrder, closePosition, closeAll, updateTpSl,
-  listOrders, listPositions, account, resetAccount, liqPrice,
+  listOrders, listPositions, account, resetAccount, liqPrice, hasOpenWork,
 };
