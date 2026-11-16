@@ -1,0 +1,22 @@
+{
+  "name": "dsx",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DSX — multi-asset exchange with live prices and demo trading",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node --no-warnings server/index.js",
+    "dev": "node --no-warnings --watch server/index.js"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "express": "^4.22.3",
+    "https-proxy-agent": "^7.0.6",
+    "lightweight-charts": "^4.2.3",
+    "three": "^0.160.0",
+    "ws": "^8.23.0"
+  }
+}

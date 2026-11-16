@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DSX Terminal</title>
+  <meta name="theme-color" content="#06070b">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/dsx.css">
+  <link rel="stylesheet" href="/css/trade.css">
+  <script src="/vendor/lightweight-charts.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a href="/" class="logo"><span class="logo-mark">DS</span><span class="hide-xs">DSX</span></a>
+    <span class="badge demo-badge">Demo</span>
+    <button class="sym-switch" id="sym-switch" aria-haspopup="dialog" aria-controls="markets-panel">
+      <span id="sym-switch-ic"></span><span id="sym-switch-label">—</span><span class="chev" aria-hidden="true">▾</span>
+    </button>
+    <div class="top-stats" id="top-stats">
+      <div><span>Equity</span><b class="num" id="ts-equity">—</b></div>
+      <div class="hide-sm"><span>Cash</span><b class="num" id="ts-cash">—</b></div>
+      <div class="hide-sm"><span>Total P&amp;L</span><b class="num" id="ts-pnl">—</b></div>
+    </div>
+    <div class="top-user" id="top-user"></div>
+  </header>
+
+  <div class="layout">
+    <!-- markets -->
+    <aside class="panel markets-panel" id="markets-panel" aria-label="Markets">
+      <div class="mp-head">
+        <input class="input search" id="search" type="search" placeholder="Search markets" aria-label="Search markets" autocomplete="off">
+        <button class="btn btn-ghost btn-sm mp-close" id="mp-close" aria-label="Close markets">×</button>
+      </div>
+      <div class="pills cat-pills" id="cat-pills"></div>
+      <div class="mp-cols"><span>Market</span><span>Price / 24h</span></div>
+      <div class="mp-list" id="mp-list"></div>
+    </aside>
+
+    <!-- chart + bottom tabs -->
+    <main class="center">
+      <section class="panel market-head">
+        <div class="mh-id">
+          <span id="mh-ic"></span>
+          <div>
+            <h1 id="mh-name">—</h1>
+            <div class="muted mh-sym" id="mh-sym"></div>
+          </div>
+        </div>
+        <div class="mh-price">
+          <b class="num" id="mh-price">—</b>
+          <span class="chg num" id="mh-chg"></span>
+        </div>
+        <dl class="mh-stats">
+          <div><dt>24h high</dt><dd class="num" id="mh-high">—</dd></div>
+          <div><dt>24h low</dt><dd class="num" id="mh-low">—</dd></div>
+          <div class="hide-sm"><dt>Bid / Ask</dt><dd class="num" id="mh-spread">—</dd></div>
+          <div><dt>Status</dt><dd><span class="badge" id="mh-status">—</span></dd></div>
+        </dl>
+      </section>
+
+      <section class="panel chart-panel">
+        <div class="chart-toolbar">
+          <div class="pills" id="tf-pills"></div>
+          <span class="muted small" id="chart-note"></span>
+        </div>
+        <div class="chart" id="chart"></div>
+      </section>
+
+      <section class="panel bottom-panel">
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="positions" role="tab">Positions <span class="count" id="cnt-positions"></span></button>
+          <button class="tab" data-tab="open" role="tab">Open orders <span class="count" id="cnt-open"></span></button>
+          <button class="tab" data-tab="history" role="tab">History</button>
+        </div>
+        <div class="tab-body" id="tab-body"></div>
+      </section>
+    </main>
+
+    <!-- order entry -->
+    <aside class="side">
+      <section class="panel order-panel">
+        <div class="seg side-seg" role="group" aria-label="Side">
+          <button class="buy active" data-side="buy">Buy</button>
+          <button class="sell" data-side="sell">Sell</button>
+        </div>
+        <div class="type-tabs" role="group" aria-label="Order type">
+          <button class="active" data-type="market">Market</button>
+          <button data-type="limit">Limit</button>
+        </div>
+
+        <form id="order-form" novalidate>
+          <div class="field limit-only hidden">
+            <label for="f-limit">Limit price</label>
+            <div class="input-wrap">
+              <input class="input num" id="f-limit" inputmode="decimal" autocomplete="off">
+              <span class="suffix">USD</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-qty">Amount</label>
+            <div class="input-wrap">
+              <input class="input num" id="f-qty" inputmode="decimal" autocomplete="off" placeholder="0">
+              <span class="suffix" id="f-qty-suffix">—</span>
+            </div>
+          </div>
+          <div class="pct-row" id="pct-row">
+            <button type="button" data-pct="0.25">25%</button>
+            <button type="button" data-pct="0.5">50%</button>
+            <button type="button" data-pct="0.75">75%</button>
+            <button type="button" data-pct="1">Max</button>
+          </div>
+          <div class="field">
+            <label for="f-total">Total</label>
+            <div class="input-wrap">
+              <input class="input num" id="f-total" inputmode="decimal" autocomplete="off" placeholder="0.00">
+              <span class="suffix">USD</span>
+            </div>
+          </div>
+
+          <dl class="summary">
+            <div><dt>Available</dt><dd class="num" id="s-avail">—</dd></div>
+            <div><dt id="s-price-lbl">Est. price</dt><dd class="num" id="s-price">—</dd></div>
+            <div><dt>Fee (<span id="s-fee-rate"></span>)</dt><dd class="num" id="s-fee">—</dd></div>
+            <div class="total"><dt id="s-total-lbl">You pay</dt><dd class="num" id="s-total">—</dd></div>
+          </dl>
+          <p class="closed-note hidden" id="closed-note"></p>
+          <div class="form-error" id="order-error" aria-live="polite"></div>
+          <button class="btn btn-lg submit buy" id="submit" type="submit">Buy</button>
+        </form>
+      </section>
+
+      <section class="panel account-panel">
+        <div class="ap-head">
+          <h2>Demo account</h2>
+          <button class="btn btn-ghost btn-sm" id="reset-btn">Reset</button>
+        </div>
+        <div class="ap-equity num" id="ap-equity">—</div>
+        <div class="ap-pnl num" id="ap-pnl"></div>
+        <div class="alloc" id="alloc" aria-hidden="true"></div>
+        <dl class="ap-stats">
+          <div><dt>Cash available</dt><dd class="num" id="ap-cash">—</dd></div>
+          <div><dt>In orders</dt><dd class="num" id="ap-locked">—</dd></div>
+          <div><dt>Holdings</dt><dd class="num" id="ap-hold">—</dd></div>
+        </dl>
+      </section>
+    </aside>
+  </div>
+
+  <div class="scrim hidden" id="scrim"></div>
+  <script type="module" src="/js/trade.js"></script>
+</body>
+</html>

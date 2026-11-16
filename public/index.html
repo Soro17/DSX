@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DSX — Trade everything</title>
+  <meta name="description" content="DSX is a multi-asset exchange: crypto, metals, stocks, indices and forex at live prices. Start with a $100,000 demo account.">
+  <meta name="theme-color" content="#06070b">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/dsx.css">
+  <link rel="stylesheet" href="/css/landing.css">
+  <script type="importmap">
+    { "imports": { "three": "/vendor/three/three.module.js", "three/addons/": "/vendor/three/addons/" } }
+  </script>
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="nav">
+    <div class="container nav-inner">
+      <a href="/" class="logo"><span class="logo-mark">DS</span>DSX</a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="#markets">Markets</a>
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="/trade">Trade</a>
+      </nav>
+      <div class="nav-cta" id="nav-cta">
+        <button class="btn btn-ghost" data-auth="login">Log in</button>
+        <button class="btn btn-primary" data-auth="signup">Start demo</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <span class="badge live">Live markets</span>
+          <h1>Trade <span class="grad">everything</span>.<br>One exchange.</h1>
+          <p class="hero-sub">Crypto, gold, stocks, indices and forex — side by side, at real-time prices. Start with <strong>$100,000</strong> in demo funds and trade like it's real.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg" data-auth="signup">Open demo account <span aria-hidden="true">→</span></button>
+            <a class="btn btn-lg" href="#markets">Explore markets</a>
+          </div>
+          <dl class="hero-stats">
+            <div><dt>Markets</dt><dd class="num" id="stat-markets">24</dd></div>
+            <div><dt>Asset classes</dt><dd class="num">5</dd></div>
+            <div><dt>Trading fee</dt><dd class="num">0.10%</dd></div>
+          </dl>
+        </div>
+        <div class="hero-visual">
+          <div class="coin-stage" id="coin-stage"></div>
+          <div class="float-card glass fc-1" data-symbol="BTC"></div>
+          <div class="float-card glass fc-2" data-symbol="XAU"></div>
+          <div class="float-card glass fc-3" data-symbol="NVDA"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="ticker" aria-label="Live prices">
+      <div class="ticker-track" id="ticker"></div>
+    </div>
+
+    <section class="section" id="markets">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Markets</p>
+            <h2>Every asset class, one balance</h2>
+          </div>
+          <div class="pills" id="cat-pills" role="tablist"></div>
+        </div>
+        <div class="markets-table glass">
+          <div class="mt-row mt-head">
+            <span>Asset</span><span class="r">Price</span><span class="r">24h</span><span class="r hide-sm">Range</span><span class="r hide-sm">Status</span><span></span>
+          </div>
+          <div id="markets-body"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="container">
+        <p class="eyebrow">Why DSX</p>
+        <h2>Built like a real exchange</h2>
+        <div class="features">
+          <article class="feature glass">
+            <div class="f-ic">⚡</div>
+            <h3>Real-time prices</h3>
+            <p>Crypto streams tick-by-tick from live order books. Stocks, metals and forex update every few seconds.</p>
+          </article>
+          <article class="feature glass">
+            <div class="f-ic">◎</div>
+            <h3>Five asset classes</h3>
+            <p>Bitcoin next to gold next to NVIDIA. Move between them instantly from a single USD balance.</p>
+          </article>
+          <article class="feature glass">
+            <div class="f-ic">⌖</div>
+            <h3>Market &amp; limit orders</h3>
+            <p>Buy at the market or set your price. Limit orders fill automatically the moment the market reaches them.</p>
+          </article>
+          <article class="feature glass">
+            <div class="f-ic">▲</div>
+            <h3>Live P&amp;L</h3>
+            <p>Track positions, average cost and unrealized profit as prices move — in real time.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="container">
+        <p class="eyebrow">How it works</p>
+        <h2>From zero to first trade in 30 seconds</h2>
+        <ol class="steps">
+          <li class="glass"><span class="step-n num">01</span><h3>Open a demo account</h3><p>Sign up — or skip it and try as a guest. You get $100,000 in demo funds.</p></li>
+          <li class="glass"><span class="step-n num">02</span><h3>Pick a market</h3><p>Choose from crypto, metals, stocks, indices and forex with live charts.</p></li>
+          <li class="glass"><span class="step-n num">03</span><h3>Trade at live prices</h3><p>Place market or limit orders and watch your portfolio move with the market.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="cta glass">
+          <div>
+            <h2>Ready to trade?</h2>
+            <p class="muted">Your $100,000 demo account is one click away.</p>
+          </div>
+          <button class="btn btn-primary btn-lg" data-auth="signup">Start trading now</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <a href="/" class="logo"><span class="logo-mark">DS</span>DSX</a>
+      <p class="muted small">Demo trading with virtual funds. Prices from public market data feeds; some markets may be delayed. Nothing on DSX is financial advice.</p>
+      <p class="muted small">© <span id="year"></span> DSX</p>
+    </div>
+  </footer>
+
+  <script type="module" src="/js/landing.js"></script>
+</body>
+</html>
