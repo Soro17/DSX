@@ -114,7 +114,7 @@ function updateHeader(prev) {
   const open = q.marketOpen !== false;
   st.className = `badge ${open ? 'live' : 'closed'}`;
   st.textContent = open ? 'Live' : 'Closed';
-  document.title = `${fmtPrice(s, q.price)} ${s}/USD — AG Exchange`;
+  document.title = `${fmtPrice(s, q.price)} ${s}/USD — DSX`;
 }
 
 // =============================================================== chart

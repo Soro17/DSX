@@ -1,4 +1,4 @@
-# AG Exchange
+# DSX
 
 A multi-asset trading platform with **live market prices** and **leveraged demo trading**. You can go long or short with up to **20x** leverage on Solana and its ecosystem tokens, plus crypto, metals, stocks, indices and forex. Every account starts with $100,000 in demo funds.
 

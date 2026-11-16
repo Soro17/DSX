@@ -1,7 +1,7 @@
-// Friendly check before anything loads: AG needs Node's built-in SQLite (Node 22.5+).
+// Friendly check before anything loads: DSX needs Node's built-in SQLite (Node 22.5+).
 const [major, minor] = process.versions.node.split('.').map(Number);
 if (major < 22 || (major === 22 && minor < 5)) {
-  console.error(`\nAG Exchange needs Node.js 22.5 or newer — you have ${process.version}.\nDownload the current LTS from https://nodejs.org and run "npm start" again.\n`);
+  console.error(`\nDSX needs Node.js 22.5 or newer — you have ${process.version}.\nDownload the current LTS from https://nodejs.org and run "npm start" again.\n`);
   process.exit(1);
 }
 // Hide Node's "SQLite is experimental" notice on versions that still print it.
@@ -98,7 +98,7 @@ app.post('/api/auth/login', wrap((req, res) => {
 app.post('/api/auth/guest', wrap((_req, res) => {
   const tag = crypto.randomBytes(4).toString('hex');
   const id = auth.createUser({
-    email: `guest-${tag}@demo.ag`,
+    email: `guest-${tag}@demo.dsx`,
     name: `Guest ${tag.slice(0, 4).toUpperCase()}`,
     password: crypto.randomBytes(24).toString('hex'),
   });
@@ -178,5 +178,5 @@ server.on('error', (err) => {
   }
   throw err;
 });
-server.listen(PORT, () => console.log(`\n  AG Exchange is running → open http://localhost:${PORT} in your browser\n`));
+server.listen(PORT, () => console.log(`\n  DSX is running → open http://localhost:${PORT} in your browser\n`));
 prices.start().catch((err) => console.error('[prices] failed to start', err));

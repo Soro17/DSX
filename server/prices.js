@@ -10,7 +10,7 @@ const { MARKETS, BY_SYMBOL } = require('./markets');
 const COINBASE_REST = 'https://api.exchange.coinbase.com';
 const COINBASE_WS = 'wss://ws-feed.exchange.coinbase.com';
 const YAHOO = 'https://query1.finance.yahoo.com';
-const UA = { 'User-Agent': 'Mozilla/5.0 (AG Exchange market data)' };
+const UA = { 'User-Agent': 'Mozilla/5.0 (DSX market data)' };
 const YAHOO_POLL_MS = 8_000;
 
 const feed = new EventEmitter();

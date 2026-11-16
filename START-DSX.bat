@@ -1,5 +1,5 @@
 @echo off
-title AG Exchange
+title DSX
 cd /d "%~dp0"
 
 if not exist "%~dp0package.json" (
@@ -23,7 +23,7 @@ if errorlevel 1 (
 )
 
 if not exist node_modules (
-  echo Installing AG Exchange - first time only, please wait about a minute...
+  echo Installing DSX - first time only, please wait about a minute...
   call npm install
   if errorlevel 1 (
     echo.
@@ -34,8 +34,8 @@ if not exist node_modules (
 )
 
 echo.
-echo Starting AG Exchange... your browser will open in a few seconds.
-echo Keep this window open while you use AG Exchange. Close it to stop it.
+echo Starting DSX... your browser will open in a few seconds.
+echo Keep this window open while you use DSX. Close it to stop it.
 echo.
 start "" cmd /c "timeout /t 5 /nobreak >nul & start http://localhost:3000"
 call npm start

@@ -2,7 +2,7 @@
   "name": "ag-exchange",
   "version": "0.1.0",
   "private": true,
-  "description": "AG Exchange \u2014 multi-asset leveraged trading with live prices and demo accounts",
+  "description": "DSX \u2014 multi-asset leveraged trading with live prices and demo accounts",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",

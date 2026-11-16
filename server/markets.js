@@ -1,4 +1,4 @@
-// Instruments tradable on AG Exchange. Everything is quoted in USD.
+// Instruments tradable on DSX. Everything is quoted in USD.
 // source: 'coinbase' => live websocket ticks; 'yahoo' => polled quotes.
 
 const MARKETS = [

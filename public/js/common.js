@@ -182,7 +182,7 @@ export function sparkline(values, { width = 120, height = 36, fill = true } = {}
 
 // ---------------------------------------------------------------- brand
 export function brandHTML() {
-  return '<span class="brand"><img src="/img/ag-mark.svg" alt="" width="34" height="34"><span class="brand-word"><b>AG</b><span>EXCHANGE</span></span></span>';
+  return '<span class="brand"><img src="/img/ag-mark.svg" alt="" width="34" height="34"><span class="brand-word"><b>DSX</b><span>EXCHANGE</span></span></span>';
 }
 
 // ---------------------------------------------------------------- session
@@ -250,11 +250,11 @@ export function openAuth(mode = 'signup') {
       $('#auth-title').textContent = signup ? 'Open your demo account' : 'Welcome back';
       $('.lead').textContent = signup
         ? 'Get $100,000 in demo funds. Trade crypto, Solana tokens, metals, stocks and forex at live prices with up to 20x leverage.'
-        : 'Log in to your AG Exchange account.';
+        : 'Log in to your DSX account.';
       $('.name-field').classList.toggle('hidden', !signup);
       $('#a-pass').autocomplete = signup ? 'new-password' : 'current-password';
       $('.submit').textContent = signup ? 'Create account' : 'Log in';
-      $('.switch').innerHTML = signup ? 'Already have an account? <button type="button">Log in</button>' : 'New to AG? <button type="button">Create an account</button>';
+      $('.switch').innerHTML = signup ? 'Already have an account? <button type="button">Log in</button>' : 'New to DSX? <button type="button">Create an account</button>';
       $('.form-error').textContent = '';
     };
     const close = (ok) => { back.remove(); document.removeEventListener('keydown', onKey); resolve(ok); };
