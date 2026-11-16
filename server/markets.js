@@ -1,11 +1,22 @@
-// Instruments tradable on DSX. Everything is quoted in USD.
+// Instruments tradable on AG Exchange. Everything is quoted in USD.
 // source: 'coinbase' => live websocket ticks; 'yahoo' => polled quotes.
 
 const MARKETS = [
+  // Solana ecosystem (live via Coinbase)
+  { symbol: 'SOL',    name: 'Solana',        category: 'solana', source: 'coinbase', feed: 'SOL-USD',    qtyDecimals: 3, priceDecimals: 2, featured: true },
+  { symbol: 'JTO',    name: 'Jito',          category: 'solana', source: 'coinbase', feed: 'JTO-USD',    qtyDecimals: 1, priceDecimals: 4 },
+  { symbol: 'PYTH',   name: 'Pyth Network',  category: 'solana', source: 'coinbase', feed: 'PYTH-USD',   qtyDecimals: 0, priceDecimals: 5 },
+  { symbol: 'RAY',    name: 'Raydium',       category: 'solana', source: 'coinbase', feed: 'RAY-USD',    qtyDecimals: 2, priceDecimals: 4 },
+  { symbol: 'ORCA',   name: 'Orca',          category: 'solana', source: 'coinbase', feed: 'ORCA-USD',   qtyDecimals: 2, priceDecimals: 4 },
+  { symbol: 'RENDER', name: 'Render',        category: 'solana', source: 'coinbase', feed: 'RENDER-USD', qtyDecimals: 2, priceDecimals: 4 },
+  { symbol: 'HNT',    name: 'Helium',        category: 'solana', source: 'coinbase', feed: 'HNT-USD',    qtyDecimals: 1, priceDecimals: 4 },
+  { symbol: 'WIF',    name: 'dogwifhat',     category: 'solana', source: 'coinbase', feed: 'WIF-USD',    qtyDecimals: 0, priceDecimals: 5 },
+  { symbol: 'BONK',   name: 'Bonk',          category: 'solana', source: 'coinbase', feed: 'BONK-USD',   qtyDecimals: 0, priceDecimals: 8 },
+  { symbol: 'POPCAT', name: 'Popcat',        category: 'solana', source: 'coinbase', feed: 'POPCAT-USD', qtyDecimals: 0, priceDecimals: 5 },
+
   // Crypto (24/7, live via Coinbase)
   { symbol: 'BTC',  name: 'Bitcoin',   category: 'crypto', source: 'coinbase', feed: 'BTC-USD',  qtyDecimals: 6, priceDecimals: 2 },
   { symbol: 'ETH',  name: 'Ethereum',  category: 'crypto', source: 'coinbase', feed: 'ETH-USD',  qtyDecimals: 5, priceDecimals: 2 },
-  { symbol: 'SOL',  name: 'Solana',    category: 'crypto', source: 'coinbase', feed: 'SOL-USD',  qtyDecimals: 4, priceDecimals: 2 },
   { symbol: 'XRP',  name: 'XRP',       category: 'crypto', source: 'coinbase', feed: 'XRP-USD',  qtyDecimals: 2, priceDecimals: 4 },
   { symbol: 'DOGE', name: 'Dogecoin',  category: 'crypto', source: 'coinbase', feed: 'DOGE-USD', qtyDecimals: 1, priceDecimals: 5 },
   { symbol: 'ADA',  name: 'Cardano',   category: 'crypto', source: 'coinbase', feed: 'ADA-USD',  qtyDecimals: 2, priceDecimals: 4 },
@@ -40,6 +51,7 @@ const MARKETS = [
 const BY_SYMBOL = Object.fromEntries(MARKETS.map((m) => [m.symbol, m]));
 
 const CATEGORIES = [
+  { id: 'solana', label: 'Solana' },
   { id: 'crypto', label: 'Crypto' },
   { id: 'metals', label: 'Metals' },
   { id: 'stocks', label: 'Stocks' },
@@ -47,4 +59,7 @@ const CATEGORIES = [
   { id: 'forex', label: 'Forex' },
 ];
 
-module.exports = { MARKETS, BY_SYMBOL, CATEGORIES };
+// Trading limits (applied to every market).
+const MAX_LEVERAGE = 20;
+
+module.exports = { MARKETS, BY_SYMBOL, CATEGORIES, MAX_LEVERAGE };

@@ -10,7 +10,7 @@ const { MARKETS, BY_SYMBOL } = require('./markets');
 const COINBASE_REST = 'https://api.exchange.coinbase.com';
 const COINBASE_WS = 'wss://ws-feed.exchange.coinbase.com';
 const YAHOO = 'https://query1.finance.yahoo.com';
-const UA = { 'User-Agent': 'Mozilla/5.0 (DSX market data)' };
+const UA = { 'User-Agent': 'Mozilla/5.0 (AG Exchange market data)' };
 const YAHOO_POLL_MS = 8_000;
 
 const feed = new EventEmitter();
@@ -174,11 +174,43 @@ async function getCandles(symbol, tf) {
   return data;
 }
 
+// ---------------------------------------------------------------- sparklines (last ~24h, hourly closes)
+const sparks = {}; // symbol -> number[]
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function refreshSparklines() {
+  for (const m of cryptoMarkets) {
+    try {
+      const rows = await getJSON(`${COINBASE_REST}/products/${m.feed}/candles?granularity=3600`);
+      sparks[m.symbol] = rows.slice(0, 24).reverse().map((r) => r[4]);
+    } catch (err) {
+      console.warn(`[prices] sparkline ${m.feed}: ${err.message}`);
+    }
+    await sleep(150); // stay well under Coinbase's public rate limit
+  }
+  try {
+    const symbols = yahooMarkets.map((m) => encodeURIComponent(m.feed)).join(',');
+    const data = await getJSON(`${YAHOO}/v8/finance/spark?symbols=${symbols}&range=5d&interval=60m`);
+    for (const m of yahooMarkets) {
+      const closes = (data[m.feed]?.close || []).filter((v) => v != null);
+      if (closes.length) sparks[m.symbol] = closes.slice(-24);
+    }
+  } catch (err) {
+    console.warn(`[prices] yahoo sparklines: ${err.message}`);
+  }
+}
+
+function getSparklines() {
+  return sparks;
+}
+
 // ---------------------------------------------------------------- start
 async function start() {
   await Promise.all([seedCoinbase(), pollYahoo()]);
   connectCoinbase();
   setInterval(pollYahoo, YAHOO_POLL_MS);
+  refreshSparklines();
+  setInterval(refreshSparklines, 10 * 60_000);
 }
 
-module.exports = { feed, start, getQuote, allQuotes, getCandles, TIMEFRAMES: Object.keys(TF) };
+module.exports = { feed, start, setQuote, getQuote, allQuotes, getCandles, getSparklines, TIMEFRAMES: Object.keys(TF) };

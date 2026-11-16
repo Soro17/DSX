@@ -1,93 +1,115 @@
-# DSX
+# AG Exchange
 
-A multi-asset exchange: crypto, metals, stocks, indices and forex in one place, with **live market prices** and a **$100,000 demo account** for paper trading.
+A multi-asset trading platform with **live market prices** and **leveraged demo trading**. You can go long or short with up to **20x** leverage on Solana and its ecosystem tokens, plus crypto, metals, stocks, indices and forex. Every account starts with $100,000 in demo funds.
 
 ## Run it
 
-Requires **Node.js 22.5+** (uses the built-in `node:sqlite`).
+Requires **Node.js 22.5+**.
+
+- **Windows:** double-click **START-DSX** inside the extracted folder.
+- **Any OS:**
+  ```bash
+  npm install
+  npm start
+  ```
+
+Then open http://localhost:3000.
+
+| Variable | Default | |
+| --- | --- | --- |
+| `PORT` | `3000` | HTTP port |
+| `DSX_DATA_DIR` | `./data` | Where the SQLite database lives |
 
 ```bash
-npm install
-npm start
+npm test   # trading-engine tests (leverage cap, PnL, liquidation, SL/TP, limit orders…)
 ```
 
-Open http://localhost:3000. Click **Start demo** to create an account, or use **Try instantly as a guest**.
+## Features
 
-Set `PORT` to change the port, and `DSX_DATA_DIR` to change where the SQLite database is stored (default `./data`).
-If your network needs an HTTPS proxy, set `HTTPS_PROXY` and run Node with `NODE_USE_ENV_PROXY=1`.
+### Trading (isolated margin)
 
-## What's in it
+- **Leverage from 1x to 20x**, in whole numbers. The server enforces the cap and rejects anything above 20x.
+- **Long and short** positions on every market.
+- **Market and limit orders.** Limit orders reserve their margin and open automatically when the live price reaches the limit.
+- **Stop loss and take profit**, set when opening a position or edited later. They trigger on live prices. Invalid levels are rejected, for example a stop loss beyond the liquidation price.
+- **Liquidation price** is shown before you trade. If price reaches it, the position is liquidated and only its own margin is lost.
+- **Position calculator:** margin, position size, quantity, fee, liquidation price and maximum position size. You can enter the amount as USD margin or as a quantity, and use the 10–100% quick buttons.
+- **Live PnL and ROE**, open orders, position history (with the close reason: manual, TP, SL or liquidated) and order history.
+- **Account summary:** equity, available balance, margin in use, funds in orders, unrealized and realized PnL, exposure and effective leverage, and win rate. You can **close all positions** or **reset** the account.
+- **Fees:** 0.05% of notional on open and on close. Maintenance margin is 0.5%.
 
-| Page | What it does |
-| --- | --- |
-| `/` | Landing page: 3D coin hero (three.js), live price ticker, markets table by asset class |
-| `/trade` | Trading terminal: market list, live candlestick chart (1m–1d), order entry, positions with live P&L, open orders, history |
+Liquidation price (isolated):
 
-**24 markets**:
+```
+long  = entry × (1 − 1/leverage + 0.005)
+short = entry × (1 + 1/leverage − 0.005)
+```
 
-- **Crypto:** BTC, ETH, SOL, XRP, DOGE, ADA, AVAX, LINK
-- **Metals:** gold, silver, platinum, copper
-- **Stocks:** AAPL, NVDA, TSLA, MSFT, AMZN, GOOGL, META
-- **Indices:** SPY, QQQ
-- **Forex:** EUR, GBP, AUD
+### Markets (33)
 
-Every market is priced in USD.
-
-### Trading rules (demo)
-
-- Market orders fill immediately at the live price. Crypto fills at the best bid/ask from the Coinbase order book.
-- Limit orders reserve your funds and fill automatically when the live price reaches your limit.
-- When a market is closed (for example, US stocks outside trading hours), market orders are refused. Limit orders wait and fill once trading resumes.
-- Spot only: no leverage and no short selling. The fee is 0.10% of order value.
-- **Reset** restores the account to $100,000.
-
-### Market data
-
-| Asset class | Source | Latency |
+| Group | Markets | Price source |
 | --- | --- | --- |
-| Crypto | Coinbase Exchange public websocket | Real-time, tick by tick |
-| Stocks, indices, metals (futures), forex | Yahoo Finance public chart API, polled every 8s | Near real-time; futures may be delayed |
+| **Solana** | SOL, JTO, PYTH, RAY, ORCA, RENDER, HNT, WIF, BONK, POPCAT | Coinbase websocket, real-time |
+| Crypto | BTC, ETH, XRP, DOGE, ADA, AVAX, LINK | Coinbase websocket, real-time |
+| Metals | Gold, silver, platinum, copper (COMEX futures) | Yahoo Finance, may be delayed |
+| Stocks | AAPL, NVDA, TSLA, MSFT, AMZN, GOOGL, META | Yahoo Finance |
+| Indices | SPY, QQQ | Yahoo Finance |
+| Forex | EUR, GBP, AUD | Yahoo Finance |
 
-Neither source needs an API key. Yahoo's endpoint is unofficial. A production deployment should use a licensed feed such as Polygon, Finnhub or Twelve Data. The feed code is isolated in `server/prices.js`.
+All price data is real: there are no simulated prices. When a market is closed (for example, US stocks outside trading hours), market orders are refused. Limit orders and SL/TP orders wait until trading resumes.
+
+### Pages
+
+- **`/` home:**
+  - live SOL trading card with a chart and a leverage/liquidation preview
+  - market pulse: top gainers and losers, plus key markets with 24h sparklines
+  - Solana ecosystem section with a 3D scene and live token tiles
+  - full markets table
+- **`/trade` terminal:**
+  - markets list
+  - candlestick chart with volume, MA7/MA25, and lines for entry, TP, SL, liquidation and limit orders
+  - order ticket
+  - positions, orders and history
+  - account panel
+
+Both pages work on phones, tablets and desktops.
 
 ## Project layout
 
 ```
 server/
-  index.js    HTTP API, static files, WebSocket push (/ws)
-  markets.js  instrument list
-  prices.js   live price feeds + candle history
-  engine.js   order execution, balances, portfolio
-  auth.js     accounts, password hashing (scrypt), sessions
+  index.js    HTTP API + WebSocket push (/ws)
+  markets.js  instrument list, MAX_LEVERAGE
+  prices.js   live feeds, candles, sparklines
+  engine.js   leveraged trading engine (positions, orders, SL/TP, liquidation)
+  auth.js     accounts (scrypt), sessions
   db.js       SQLite schema
 public/
-  index.html, trade.html
-  css/        design tokens + page styles
-  js/         common.js (API, live socket, formatting, auth modal), landing.js, trade.js, coin3d.js
+  index.html, trade.html, img/ag-mark.svg
+  css/base.css (design system), home.css, trade.css
+  js/common.js, home.js, trade.js, solana3d.js
+test/engine.test.js
 ```
 
 ### API
 
 | Method | Path | |
 | --- | --- | --- |
-| GET | `/api/markets` | Markets and latest quotes |
-| GET | `/api/candles/:symbol?tf=1m\|5m\|15m\|1h\|1d` | OHLCV history |
-| POST | `/api/auth/register` · `/login` · `/guest` · `/logout` | Session cookie auth |
-| GET | `/api/me` | Current user |
-| GET | `/api/portfolio` | Cash, holdings, P&L |
-| GET | `/api/orders?status=open\|filled\|cancelled` | Orders |
-| POST | `/api/orders` | `{symbol, side, type, qty, limitPrice?}` |
-| DELETE | `/api/orders/:id` | Cancel an open order |
-| POST | `/api/account/reset` | Reset demo account |
+| GET | `/api/markets` | Markets, quotes, trading limits |
+| GET | `/api/candles/:symbol?tf=1m\|5m\|15m\|1h\|1d` | OHLCV |
+| GET | `/api/sparklines` | Last 24 hourly closes per market |
+| POST | `/api/auth/register` · `login` · `guest` · `logout` | Session cookie |
+| GET | `/api/account` | Equity, margin, PnL, open positions |
+| POST | `/api/orders` | `{symbol, side: long\|short, type: market\|limit, qty, leverage 1–20, limitPrice?, tp?, sl?}` |
+| GET / DELETE | `/api/orders?status=` · `/api/orders/:id` | List and cancel |
+| GET | `/api/positions?status=open\|closed` | Positions |
+| PATCH | `/api/positions/:id` | `{tp, sl}` (`null` clears) |
+| POST | `/api/positions/:id/close` · `/api/positions/close-all` | Market close |
+| POST | `/api/account/reset` | Back to $100,000 |
 
-WebSocket `/ws` pushes `{type:"quotes"}` price batches and `{type:"order"}` fill events for the logged-in user.
+The WebSocket at `/ws` pushes price batches (`quotes`) and per-user `account` events: `opened`, `filled`, `closed`, `take_profit`, `stop_loss` and `liquidation`.
 
-## Going from demo to real money
+## Notes
 
-These need to be in place before any real funds are handled:
-
-- Licensing for your jurisdiction (crypto/broker/exchange), plus KYC and AML checks.
-- A custody or brokerage partner, or exchange connectivity, so that orders route to a real venue.
-- A payments provider for fiat deposits and withdrawals.
-- Licensed market data.
-- Security hardening: rate limiting, 2FA, audit logs, and decimal or integer money math instead of floats.
+- Databases from older versions are upgraded automatically. Spot holdings become 1x long positions at their average cost.
+- This is demo trading with virtual funds. Handling real money would require licensing, KYC/AML checks, custody, a payments provider and licensed market data.

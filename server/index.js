@@ -1,7 +1,7 @@
-// Friendly check before anything loads: DSX needs Node's built-in SQLite (Node 22.5+).
+// Friendly check before anything loads: AG needs Node's built-in SQLite (Node 22.5+).
 const [major, minor] = process.versions.node.split('.').map(Number);
 if (major < 22 || (major === 22 && minor < 5)) {
-  console.error(`\nDSX needs Node.js 22.5 or newer — you have ${process.version}.\nDownload the current LTS from https://nodejs.org and run "npm start" again.\n`);
+  console.error(`\nAG Exchange needs Node.js 22.5 or newer — you have ${process.version}.\nDownload the current LTS from https://nodejs.org and run "npm start" again.\n`);
   process.exit(1);
 }
 // Hide Node's "SQLite is experimental" notice on versions that still print it.
@@ -68,9 +68,16 @@ function sendError(res, err) {
 // ---------------------------------------------------------------- market data
 app.get('/api/markets', wrap(() => ({
   categories: CATEGORIES,
-  feeRate: engine.FEE_RATE,
+  trading: {
+    feeRate: engine.FEE_RATE,
+    maintMarginRate: engine.MAINT_MARGIN_RATE,
+    maxLeverage: engine.MAX_LEVERAGE,
+    minNotional: engine.MIN_NOTIONAL,
+  },
   markets: MARKETS.map(({ feed, ...m }) => ({ ...m, quote: prices.getQuote(m.symbol) })),
 })));
+
+app.get('/api/sparklines', wrap(() => prices.getSparklines()));
 
 app.get('/api/candles/:symbol', wrap((req) => prices.getCandles(req.params.symbol, req.query.tf || '15m')));
 
@@ -91,7 +98,7 @@ app.post('/api/auth/login', wrap((req, res) => {
 app.post('/api/auth/guest', wrap((_req, res) => {
   const tag = crypto.randomBytes(4).toString('hex');
   const id = auth.createUser({
-    email: `guest-${tag}@demo.dsx`,
+    email: `guest-${tag}@demo.ag`,
     name: `Guest ${tag.slice(0, 4).toUpperCase()}`,
     password: crypto.randomBytes(24).toString('hex'),
   });
@@ -108,20 +115,26 @@ app.post('/api/auth/logout', wrap((req, res) => {
 app.get('/api/me', wrap((req) => ({ user: auth.userFromToken(auth.tokenFromRequest(req)) })));
 
 // ---------------------------------------------------------------- trading
-app.get('/api/portfolio', auth.requireUser, wrap((req) => engine.portfolio(req.user.id)));
+app.get('/api/account', auth.requireUser, wrap((req) => engine.account(req.user.id)));
+
+app.get('/api/positions', auth.requireUser, wrap((req) => {
+  const status = req.query.status === 'closed' ? 'closed' : 'open';
+  return engine.listPositions(req.user.id, status, req.query.limit);
+}));
+app.post('/api/positions/close-all', auth.requireUser, wrap((req) => engine.closeAll(req.user.id)));
+app.post('/api/positions/:id/close', auth.requireUser, wrap((req) => engine.closePosition(req.user.id, req.params.id)));
+app.patch('/api/positions/:id', auth.requireUser, wrap((req) => engine.updateTpSl(req.user.id, req.params.id, req.body || {})));
 
 app.get('/api/orders', auth.requireUser, wrap((req) => {
   const status = ['open', 'filled', 'cancelled'].includes(req.query.status) ? req.query.status : 'open';
   return engine.listOrders(req.user.id, status, req.query.limit);
 }));
-
 app.post('/api/orders', auth.requireUser, wrap((req) => engine.placeOrder(req.user.id, req.body || {})));
-
 app.delete('/api/orders/:id', auth.requireUser, wrap((req) => engine.cancelOrder(req.user.id, req.params.id)));
 
 app.post('/api/account/reset', auth.requireUser, wrap((req) => {
   engine.resetAccount(req.user.id);
-  return engine.portfolio(req.user.id);
+  return engine.account(req.user.id);
 }));
 
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
@@ -152,8 +165,8 @@ setInterval(() => {
   for (const ws of wss.clients) if (ws.readyState === ws.OPEN) ws.send(msg);
 }, 250);
 
-engine.events.on('order', (userId, order) => {
-  const msg = JSON.stringify({ type: 'order', data: order });
+engine.events.on('account', (userId, event) => {
+  const msg = JSON.stringify({ type: 'account', data: event });
   for (const ws of socketsByUser.get(userId) || []) if (ws.readyState === ws.OPEN) ws.send(msg);
 });
 
@@ -165,5 +178,5 @@ server.on('error', (err) => {
   }
   throw err;
 });
-server.listen(PORT, () => console.log(`\n  DSX is running → open http://localhost:${PORT} in your browser\n`));
+server.listen(PORT, () => console.log(`\n  AG Exchange is running → open http://localhost:${PORT} in your browser\n`));
 prices.start().catch((err) => console.error('[prices] failed to start', err));

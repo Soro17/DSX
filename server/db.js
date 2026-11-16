@@ -54,6 +54,54 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_orders_open ON orders(status, symbol);
   CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id, created_at DESC);
+
+  -- Leveraged trading (isolated margin). Supersedes the spot 'orders' table above,
+  -- which is kept only so older databases can be migrated.
+  CREATE TABLE IF NOT EXISTS positions (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    symbol        TEXT NOT NULL,
+    side          TEXT NOT NULL CHECK (side IN ('long','short')),
+    qty           REAL NOT NULL,
+    leverage      INTEGER NOT NULL CHECK (leverage BETWEEN 1 AND 20),
+    entry_price   REAL NOT NULL,
+    margin        REAL NOT NULL,
+    liq_price     REAL NOT NULL,
+    sl            REAL,
+    tp            REAL,
+    open_fee      REAL NOT NULL DEFAULT 0,
+    status        TEXT NOT NULL CHECK (status IN ('open','closed')),
+    close_price   REAL,
+    close_fee     REAL,
+    realized_pnl  REAL,
+    close_reason  TEXT,
+    opened_at     INTEGER NOT NULL,
+    closed_at     INTEGER
+  );
+  CREATE INDEX IF NOT EXISTS idx_pos_open ON positions(status, symbol);
+  CREATE INDEX IF NOT EXISTS idx_pos_user ON positions(user_id, status, opened_at DESC);
+
+  CREATE TABLE IF NOT EXISTS trade_orders (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    symbol       TEXT NOT NULL,
+    side         TEXT NOT NULL CHECK (side IN ('long','short')),
+    type         TEXT NOT NULL CHECK (type IN ('market','limit')),
+    qty          REAL NOT NULL,
+    leverage     INTEGER NOT NULL CHECK (leverage BETWEEN 1 AND 20),
+    limit_price  REAL,
+    sl           REAL,
+    tp           REAL,
+    reserved     REAL NOT NULL DEFAULT 0,
+    status       TEXT NOT NULL CHECK (status IN ('open','filled','cancelled')),
+    fill_price   REAL,
+    fee          REAL NOT NULL DEFAULT 0,
+    position_id  INTEGER,
+    created_at   INTEGER NOT NULL,
+    updated_at   INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_torders_open ON trade_orders(status, symbol);
+  CREATE INDEX IF NOT EXISTS idx_torders_user ON trade_orders(user_id, status, updated_at DESC);
 `);
 
 /** Run fn inside a transaction; rolls back on throw. */

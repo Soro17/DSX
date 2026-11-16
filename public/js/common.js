@@ -1,4 +1,4 @@
-// Shared client helpers: API, live socket, formatting, auth modal, toasts.
+// Shared client helpers: API, live socket, formatting, icons, sparklines, auth modal, toasts.
 
 export async function api(path, { method = 'GET', body } = {}) {
   const res = await fetch(`/api${path}`, {
@@ -17,15 +17,16 @@ export const store = {
   markets: [],
   bySymbol: {},
   categories: [],
-  feeRate: 0.001,
+  trading: { feeRate: 0.0005, maintMarginRate: 0.005, maxLeverage: 20, minNotional: 5 },
   quotes: {},
+  sparks: {},
 };
 
 export async function loadMarkets() {
   const data = await api('/markets');
   store.markets = data.markets;
   store.categories = data.categories;
-  store.feeRate = data.feeRate;
+  store.trading = data.trading;
   for (const m of data.markets) {
     store.bySymbol[m.symbol] = m;
     if (m.quote) store.quotes[m.symbol] = m.quote;
@@ -33,18 +34,26 @@ export async function loadMarkets() {
   return store;
 }
 
+export async function loadSparklines() {
+  try { store.sparks = await api('/sparklines'); } catch { /* sparklines are decorative */ }
+  return store.sparks;
+}
+
 // ---------------------------------------------------------------- live socket
 const quoteListeners = new Set();
-const orderListeners = new Set();
+const accountListeners = new Set();
+const statusListeners = new Set();
 let socket;
 export function onQuotes(fn) { quoteListeners.add(fn); return () => quoteListeners.delete(fn); }
-export function onOrder(fn) { orderListeners.add(fn); return () => orderListeners.delete(fn); }
+export function onAccount(fn) { accountListeners.add(fn); return () => accountListeners.delete(fn); }
+export function onLiveStatus(fn) { statusListeners.add(fn); return () => statusListeners.delete(fn); }
 
 export function connectLive() {
-  if (socket && socket.readyState <= 1) socket.close();
+  if (socket && socket.readyState <= 1) { socket.onclose = null; socket.close(); }
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   const ws = new WebSocket(`${proto}://${location.host}/ws`);
   socket = ws;
+  ws.onopen = () => statusListeners.forEach((fn) => fn(true));
   ws.onmessage = (ev) => {
     const msg = JSON.parse(ev.data);
     if (msg.type === 'quotes') {
@@ -55,44 +64,49 @@ export function connectLive() {
         changed.push({ q, prev });
       }
       quoteListeners.forEach((fn) => fn(changed));
-    } else if (msg.type === 'order') {
-      orderListeners.forEach((fn) => fn(msg.data));
+    } else if (msg.type === 'account') {
+      accountListeners.forEach((fn) => fn(msg.data));
     }
   };
-  ws.onclose = () => { if (socket === ws) setTimeout(connectLive, 2000); };
+  ws.onclose = () => {
+    statusListeners.forEach((fn) => fn(false));
+    if (socket === ws) setTimeout(connectLive, 2000);
+  };
 }
 
 // ---------------------------------------------------------------- formatting
+const nf = (min, max) => new Intl.NumberFormat('en-US', { minimumFractionDigits: min, maximumFractionDigits: max });
+const nfCache = {};
+const fmtN = (v, min, max = min) => (nfCache[`${min}:${max}`] ||= nf(min, max)).format(v);
+
 export function fmtPrice(symbol, v) {
   if (v == null || !Number.isFinite(v)) return '—';
   const d = store.bySymbol[symbol]?.priceDecimals ?? 2;
-  return v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  return fmtN(v, d);
 }
 export function fmtUSD(v, d = 2) {
   if (v == null || !Number.isFinite(v)) return '—';
-  const s = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
-  return `${v < 0 ? '-' : ''}$${s}`;
+  return `${v < 0 ? '-' : ''}$${fmtN(Math.abs(v), d)}`;
 }
 export function fmtSignedUSD(v) {
   if (v == null || !Number.isFinite(v)) return '—';
-  return `${v >= 0 ? '+' : '-'}${fmtUSD(Math.abs(v))}`;
+  return `${v >= 0 ? '+' : '-'}$${fmtN(Math.abs(v), 2)}`;
 }
-export function fmtPct(v) {
+export function fmtPct(v, d = 2) {
   if (v == null || !Number.isFinite(v)) return '—';
-  return `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
+  return `${v >= 0 ? '+' : ''}${v.toFixed(d)}%`;
 }
 export function fmtQty(symbol, v) {
   if (v == null || !Number.isFinite(v)) return '—';
   const d = store.bySymbol[symbol]?.qtyDecimals ?? 4;
-  return v.toLocaleString('en-US', { maximumFractionDigits: d });
+  return fmtN(v, 0, d);
 }
-export function fmtCompact(v) {
+export function fmtCompact(v, prefix = '') {
   if (v == null || !Number.isFinite(v)) return '—';
-  return v.toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 });
+  return prefix + v.toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 });
 }
 export const dirClass = (v) => (v > 0 ? 'up' : v < 0 ? 'down' : '');
 
-/** Restart a CSS flash animation on el, depending on price direction. */
 export function flash(el, prev, next) {
   if (!el || prev == null || next == null || prev === next) return;
   el.classList.remove('flash-up', 'flash-down');
@@ -100,22 +114,75 @@ export function flash(el, prev, next) {
   el.classList.add(next > prev ? 'flash-up' : 'flash-down');
 }
 
+export function timeAgo(ts) {
+  const s = Math.max(1, Math.round((Date.now() - ts) / 1000));
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.round(s / 60)}m ago`;
+  if (s < 86400) return `${Math.round(s / 3600)}h ago`;
+  return new Date(ts).toLocaleDateString();
+}
+
 // ---------------------------------------------------------------- asset icons
+const SOL_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="solg" x1="3" y1="20" x2="21" y2="4" gradientUnits="userSpaceOnUse"><stop stop-color="#9945FF"/><stop offset=".5" stop-color="#5B6CFF"/><stop offset="1" stop-color="#14F195"/></linearGradient></defs>
+<path fill="url(#solg)" d="M6.2 15.6a.6.6 0 0 1 .43-.18h14.1c.27 0 .4.32.21.51l-2.8 2.8a.6.6 0 0 1-.43.18H3.6a.3.3 0 0 1-.21-.51l2.8-2.8Zm0-10.45A.62.62 0 0 1 6.63 5h14.1c.27 0 .4.32.21.51l-2.8 2.8a.6.6 0 0 1-.43.18H3.6a.3.3 0 0 1-.21-.51l2.8-2.83Zm11.51 5.2a.6.6 0 0 0-.43-.18H3.18c-.27 0-.4.32-.21.51l2.8 2.8c.11.11.27.18.43.18h14.1c.27 0 .4-.32.21-.51l-2.8-2.8Z"/></svg>`;
+
 const ICON = {
-  BTC: ['₿', '#f7931a'], ETH: ['Ξ', '#9fa8ff'], SOL: ['◎', '#14f195'], XRP: ['XRP', '#d6dbe6'],
-  DOGE: ['Ð', '#d9b84a'], ADA: ['₳', '#4d7cff'], AVAX: ['AV', '#ff5a5f'], LINK: ['⬡', '#4a7dff'],
+  SOL: [SOL_SVG, '#0d0f1a'], JTO: ['JTO', '#7ee3c4'], PYTH: ['PY', '#c7b2ff'], RAY: ['RAY', '#5ac4be'],
+  ORCA: ['🐋', '#ffd15c'], RENDER: ['RN', '#ff4a4a'], HNT: ['HNT', '#474dff'], WIF: ['WIF', '#c9a074'],
+  BONK: ['BNK', '#f7a531'], POPCAT: ['PC', '#f0e6d2'],
+  BTC: ['₿', '#f7931a'], ETH: ['Ξ', '#9fa8ff'], XRP: ['XRP', '#d6dbe6'], DOGE: ['Ð', '#d9b84a'],
+  ADA: ['₳', '#4d7cff'], AVAX: ['AV', '#ff5a5f'], LINK: ['⬡', '#4a7dff'],
   XAU: ['Au', '#f4c55b'], XAG: ['Ag', '#d5dbe3'], XPT: ['Pt', '#b8c4cf'], XCU: ['Cu', '#e08a5b'],
   EUR: ['€', '#7ab8ff'], GBP: ['£', '#c39bff'], AUD: ['A$', '#66e0b5'],
-  SPY: ['500', '#c8ff3d'], QQQ: ['100', '#8b6cff'],
+  SPY: ['500', '#9b7bff'], QQQ: ['100', '#22e3f0'],
+  AAPL: ['AA', '#e8e8ea'], NVDA: ['NV', '#76b900'], TSLA: ['T', '#e82127'], MSFT: ['MS', '#00a4ef'],
+  AMZN: ['a', '#ff9900'], GOOGL: ['G', '#4285f4'], META: ['∞', '#0866ff'],
 };
-export function assetIcon(symbol, small = false) {
-  const [glyph, color] = ICON[symbol] || [symbol.slice(0, 2), '#c8ff3d'];
+
+export function assetIcon(symbol, size = '') {
+  const [glyph, color] = ICON[symbol] || [symbol.slice(0, 2), '#9b7bff'];
   const el = document.createElement('span');
-  el.className = `asset-ic${small ? ' sm' : ''}`;
-  el.style.background = `radial-gradient(circle at 30% 25%, #fff8, transparent 45%), ${color}`;
-  el.textContent = glyph;
+  const m = store.bySymbol[symbol];
+  el.className = `asset-ic${size ? ` ${size}` : ''}${m?.category === 'solana' && symbol !== 'SOL' ? ' sol-eco' : ''}`;
   el.setAttribute('aria-hidden', 'true');
+  if (glyph.startsWith('<svg')) {
+    el.innerHTML = glyph.replaceAll('solg', `solg${++sparkId}`); // unique gradient id per icon
+    el.style.background = color;
+    el.style.boxShadow = 'inset 0 0 0 1px rgba(153,69,255,.5), 0 0 16px -2px rgba(153,69,255,.55)';
+  } else {
+    el.textContent = glyph;
+    el.style.background = `radial-gradient(circle at 30% 25%, #fff9, transparent 48%), ${color}`;
+  }
   return el;
+}
+
+// ---------------------------------------------------------------- sparkline
+let sparkId = 0;
+/** Returns an SVG sparkline for `values` (real hourly closes). */
+export function sparkline(values, { width = 120, height = 36, fill = true } = {}) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.setAttribute('class', 'spark');
+  svg.setAttribute('aria-hidden', 'true');
+  if (!values || values.length < 2) return svg;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const pts = values.map((v, i) => [(i / (values.length - 1)) * width, height - 2 - ((v - min) / span) * (height - 4)]);
+  const d = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
+  const color = values[values.length - 1] >= values[0] ? '#16c784' : '#f6465d';
+  const id = `sg${++sparkId}`;
+  svg.innerHTML = `${fill ? `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".28"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${d} L${width} ${height} L0 ${height} Z" fill="url(#${id})"/>` : ''}
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>`;
+  return svg;
+}
+
+// ---------------------------------------------------------------- brand
+export function brandHTML() {
+  return '<span class="brand"><img src="/img/ag-mark.svg" alt="" width="34" height="34"><span class="brand-word"><b>AG</b><span>EXCHANGE</span></span></span>';
 }
 
 // ---------------------------------------------------------------- session
@@ -127,19 +194,23 @@ export async function logout() {
 }
 
 // ---------------------------------------------------------------- toasts
+const TOAST_ICON = { ok: '✓', err: '!', info: 'i', warn: '⚠' };
 export function toast(title, body = '', kind = 'info') {
   let box = document.querySelector('.toasts');
   if (!box) {
     box = document.createElement('div');
     box.className = 'toasts';
     box.setAttribute('role', 'status');
+    box.setAttribute('aria-live', 'polite');
     document.body.append(box);
   }
   const t = document.createElement('div');
   t.className = `toast ${kind}`;
+  const i = document.createElement('i');
+  i.textContent = TOAST_ICON[kind] || 'i';
   const s = document.createElement('strong');
   s.textContent = title;
-  t.append(s);
+  t.append(i, s);
   if (body) {
     const p = document.createElement('span');
     p.className = 'muted';
@@ -147,7 +218,7 @@ export function toast(title, body = '', kind = 'info') {
     t.append(p);
   }
   box.append(t);
-  setTimeout(() => t.remove(), 4500);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 260); }, 5000);
 }
 
 // ---------------------------------------------------------------- auth modal
@@ -157,8 +228,9 @@ export function openAuth(mode = 'signup') {
     const back = document.createElement('div');
     back.className = 'modal-backdrop';
     back.innerHTML = `
-      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <div class="modal card edge-glow" role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <button class="close" type="button" aria-label="Close">×</button>
+        ${brandHTML()}
         <h2 id="auth-title"></h2>
         <p class="lead"></p>
         <form novalidate>
@@ -168,7 +240,7 @@ export function openAuth(mode = 'signup') {
           <div class="form-error" aria-live="polite"></div>
           <button class="btn btn-primary btn-lg submit" type="submit"></button>
           <div class="divider">or</div>
-          <button class="btn btn-lg guest" type="button">Try instantly as a guest</button>
+          <button class="btn btn-lg guest" type="button">Continue as guest — instant demo</button>
         </form>
         <div class="switch"></div>
       </div>`;
@@ -177,12 +249,12 @@ export function openAuth(mode = 'signup') {
       const signup = mode === 'signup';
       $('#auth-title').textContent = signup ? 'Open your demo account' : 'Welcome back';
       $('.lead').textContent = signup
-        ? 'Get $100,000 in demo funds and trade crypto, metals, stocks and forex at live prices.'
-        : 'Log in to your DSX demo account.';
+        ? 'Get $100,000 in demo funds. Trade crypto, Solana tokens, metals, stocks and forex at live prices with up to 20x leverage.'
+        : 'Log in to your AG Exchange account.';
       $('.name-field').classList.toggle('hidden', !signup);
       $('#a-pass').autocomplete = signup ? 'new-password' : 'current-password';
-      $('.submit').textContent = signup ? 'Create demo account' : 'Log in';
-      $('.switch').innerHTML = signup ? 'Already have an account? <a>Log in</a>' : 'New to DSX? <a>Create a demo account</a>';
+      $('.submit').textContent = signup ? 'Create account' : 'Log in';
+      $('.switch').innerHTML = signup ? 'Already have an account? <button type="button">Log in</button>' : 'New to AG? <button type="button">Create an account</button>';
       $('.form-error').textContent = '';
     };
     const close = (ok) => { back.remove(); document.removeEventListener('keydown', onKey); resolve(ok); };
@@ -195,7 +267,7 @@ export function openAuth(mode = 'signup') {
 
     $('.close').onclick = () => close(false);
     back.addEventListener('mousedown', (e) => { if (e.target === back) close(false); });
-    $('.switch').addEventListener('click', (e) => { if (e.target.tagName === 'A') { mode = mode === 'signup' ? 'login' : 'signup'; render(); } });
+    $('.switch').addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') { mode = mode === 'signup' ? 'login' : 'signup'; render(); } });
     $('form').addEventListener('submit', (e) => {
       e.preventDefault();
       const f = Object.fromEntries(new FormData(e.target));
@@ -208,4 +280,12 @@ export function openAuth(mode = 'signup') {
     document.body.append(back);
     (mode === 'signup' ? $('#a-name') : $('#a-email')).focus();
   });
+}
+
+/** Adds .in to .reveal elements as they scroll into view. */
+export function revealOnScroll() {
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 }

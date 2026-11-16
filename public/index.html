@@ -3,135 +3,210 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DSX — Trade everything</title>
-  <meta name="description" content="DSX is a multi-asset exchange: crypto, metals, stocks, indices and forex at live prices. Start with a $100,000 demo account.">
-  <meta name="theme-color" content="#06070b">
+  <title>AG Exchange — Trade Solana, crypto & global markets with up to 20x</title>
+  <meta name="description" content="AG Exchange: trade Solana, crypto, metals, stocks and forex at live prices. Long or short with up to 20x leverage, stop loss and take profit. Start with a $100,000 demo account.">
+  <meta name="theme-color" content="#05060a">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/dsx.css">
-  <link rel="stylesheet" href="/css/landing.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/home.css">
   <script type="importmap">
     { "imports": { "three": "/vendor/three/three.module.js", "three/addons/": "/vendor/three/addons/" } }
   </script>
+  <script src="/vendor/lightweight-charts.js" defer></script>
 </head>
 <body>
-  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="bg" aria-hidden="true"><i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i><i class="grid"></i></div>
 
-  <header class="nav">
+  <header class="nav" id="nav">
     <div class="container nav-inner">
-      <a href="/" class="logo"><span class="logo-mark">DS</span>DSX</a>
+      <a href="/" class="brand" aria-label="AG Exchange home"><img src="/img/ag-mark.svg" alt="" width="34" height="34"><span class="brand-word"><b>AG</b><span>EXCHANGE</span></span></a>
       <nav class="nav-links" aria-label="Main">
         <a href="#markets">Markets</a>
+        <a href="#solana" class="sol-link"><span class="sol-dot"></span>Solana</a>
+        <a href="#pulse">Pulse</a>
         <a href="#features">Features</a>
-        <a href="#how">How it works</a>
         <a href="/trade">Trade</a>
       </nav>
       <div class="nav-cta" id="nav-cta">
         <button class="btn btn-ghost" data-auth="login">Log in</button>
-        <button class="btn btn-primary" data-auth="signup">Start demo</button>
+        <button class="btn btn-primary" data-auth="signup">Start trading</button>
       </div>
     </div>
   </header>
 
   <main>
+    <!-- HERO -->
     <section class="hero">
       <div class="container hero-inner">
         <div class="hero-copy">
-          <span class="badge live">Live markets</span>
-          <h1>Trade <span class="grad">everything</span>.<br>One exchange.</h1>
-          <p class="hero-sub">Crypto, gold, stocks, indices and forex — side by side, at real-time prices. Start with <strong>$100,000</strong> in demo funds and trade like it's real.</p>
+          <span class="eyebrow-pill"><span class="badge live">Live</span> Real-time prices · up to <b>20x</b> leverage</span>
+          <h1>Trade every market.<br><span class="grad-text">Amplified.</span></h1>
+          <p class="hero-sub">Go long or short on Solana, Bitcoin, gold, NVIDIA and more — with leverage up to 20x, stop loss, take profit and the liquidation price shown before you trade. Start with <strong>$100,000</strong> in demo funds.</p>
           <div class="hero-actions">
             <button class="btn btn-primary btn-lg" data-auth="signup">Open demo account <span aria-hidden="true">→</span></button>
-            <a class="btn btn-lg" href="#markets">Explore markets</a>
+            <a class="btn btn-lg btn-sol-outline" href="/trade?s=SOL"><span class="sol-glyph" id="hero-sol-glyph"></span>Trade SOL</a>
           </div>
           <dl class="hero-stats">
-            <div><dt>Markets</dt><dd class="num" id="stat-markets">24</dd></div>
-            <div><dt>Asset classes</dt><dd class="num">5</dd></div>
-            <div><dt>Trading fee</dt><dd class="num">0.10%</dd></div>
+            <div><dt>Markets</dt><dd class="num" id="stat-markets">—</dd></div>
+            <div><dt>Max leverage</dt><dd class="num">20x</dd></div>
+            <div><dt>Trading fee</dt><dd class="num">0.05%</dd></div>
+            <div><dt>Crypto</dt><dd class="num">24/7</dd></div>
           </dl>
         </div>
-        <div class="hero-visual">
-          <div class="coin-stage" id="coin-stage"></div>
-          <div class="float-card glass fc-1" data-symbol="BTC"></div>
-          <div class="float-card glass fc-2" data-symbol="XAU"></div>
-          <div class="float-card glass fc-3" data-symbol="NVDA"></div>
+
+        <!-- live SOL trading card -->
+        <div class="hero-card card edge-glow edge-sol" id="hero-card">
+          <div class="hc-head">
+            <div class="hc-id"><span id="hc-ic"></span><div><b>Solana</b><span class="muted">SOL / USD · Perpetual-style</span></div></div>
+            <span class="badge live" id="hc-status">Live</span>
+          </div>
+          <div class="hc-price">
+            <b class="num" id="hc-price">—</b>
+            <span class="chg num" id="hc-chg">—</span>
+          </div>
+          <div class="hc-tf pills" id="hc-tf" role="group" aria-label="Chart timeframe">
+            <button class="pill" data-tf="15m">15m</button>
+            <button class="pill active" data-tf="1h">1H</button>
+            <button class="pill" data-tf="1d">1D</button>
+          </div>
+          <div class="hc-chart" id="hc-chart"></div>
+          <dl class="hc-stats">
+            <div><dt>24h high</dt><dd class="num" id="hc-high">—</dd></div>
+            <div><dt>24h low</dt><dd class="num" id="hc-low">—</dd></div>
+            <div><dt>24h volume</dt><dd class="num" id="hc-vol">—</dd></div>
+            <div><dt>Spread</dt><dd class="num" id="hc-spread">—</dd></div>
+          </dl>
+          <div class="hc-calc">
+            <div class="hc-calc-head">
+              <span class="label">Position preview — $1,000 margin</span>
+              <span class="lev-val num" id="hc-lev-val">10x</span>
+            </div>
+            <input type="range" id="hc-lev" class="lev-range" min="1" max="20" step="1" value="10" aria-label="Leverage">
+            <div class="hc-calc-out">
+              <div><span>Position size</span><b class="num" id="hc-size">—</b></div>
+              <div><span>Liq. (long)</span><b class="num liq" id="hc-liq-long">—</b></div>
+              <div><span>Liq. (short)</span><b class="num liq" id="hc-liq-short">—</b></div>
+            </div>
+            <div class="hc-actions">
+              <a class="btn btn-up" id="hc-long" href="/trade?s=SOL&side=long&lev=10">Long SOL</a>
+              <a class="btn btn-down" id="hc-short" href="/trade?s=SOL&side=short&lev=10">Short SOL</a>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <div class="ticker" aria-label="Live prices">
-      <div class="ticker-track" id="ticker"></div>
-    </div>
+    <div class="ticker" aria-label="Live prices"><div class="ticker-track" id="ticker"></div></div>
 
+    <!-- MARKET PULSE -->
+    <section class="section" id="pulse">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <p class="eyebrow">Market pulse</p>
+            <h2>What's moving right now</h2>
+          </div>
+          <p class="muted head-note">Live from Coinbase &amp; Yahoo Finance. Updates in real time.</p>
+        </div>
+        <div class="pulse-grid">
+          <div class="card movers reveal">
+            <div class="movers-tabs pills" role="tablist">
+              <button class="pill active" data-movers="gainers">Top gainers</button>
+              <button class="pill" data-movers="losers">Top losers</button>
+            </div>
+            <ol class="movers-list" id="movers"></ol>
+          </div>
+          <div class="spot-cards" id="spot-cards"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOLANA -->
+    <section class="section sol-section" id="solana">
+      <div class="sol-glow" aria-hidden="true"></div>
+      <div class="container">
+        <div class="sol-hero">
+          <div class="sol-copy reveal">
+            <span class="badge sol">Solana ecosystem</span>
+            <h2>Solana, <span class="sol-text">front and center.</span></h2>
+            <p class="muted">Trade SOL and the leading Solana tokens — Jito, Pyth, Raydium, Orca, Render, Helium, Bonk, dogwifhat and Popcat — with live order-book prices and up to 20x leverage.</p>
+            <dl class="sol-stats">
+              <div><dt>SOL price</dt><dd class="num" id="sol-stat-price">—</dd></div>
+              <div><dt>SOL 24h</dt><dd class="num" id="sol-stat-chg">—</dd></div>
+              <div><dt>Ecosystem avg. 24h</dt><dd class="num" id="sol-stat-eco">—</dd></div>
+              <div><dt>Tokens listed</dt><dd class="num" id="sol-stat-count">—</dd></div>
+            </dl>
+            <div class="hero-actions">
+              <a class="btn btn-sol btn-lg" href="/trade?s=SOL">Trade Solana</a>
+              <a class="btn btn-lg" href="#markets" data-filter="solana">View all Solana markets</a>
+            </div>
+          </div>
+          <div class="sol-stage reveal" id="sol-stage" aria-hidden="true"></div>
+        </div>
+        <div class="eco-grid" id="eco-grid"></div>
+      </div>
+    </section>
+
+    <!-- MARKETS -->
     <section class="section" id="markets">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <div>
             <p class="eyebrow">Markets</p>
-            <h2>Every asset class, one balance</h2>
+            <h2>Every asset class, one account</h2>
           </div>
-          <div class="pills" id="cat-pills" role="tablist"></div>
+          <input class="input mk-search" id="mk-search" type="search" placeholder="Search markets" aria-label="Search markets" autocomplete="off">
         </div>
-        <div class="markets-table glass">
-          <div class="mt-row mt-head">
-            <span>Asset</span><span class="r">Price</span><span class="r">24h</span><span class="r hide-sm">Range</span><span class="r hide-sm">Status</span><span></span>
+        <div class="pills mk-tabs" id="mk-tabs" role="tablist"></div>
+        <div class="card mk-table reveal">
+          <div class="mk-row mk-head">
+            <span>Asset</span><span class="r">Price</span><span class="r">24h</span><span class="r hide-md">24h chart</span><span class="r hide-sm">24h range</span><span class="r hide-sm">Leverage</span><span></span>
           </div>
-          <div id="markets-body"></div>
+          <div id="mk-body"></div>
         </div>
       </div>
     </section>
 
+    <!-- FEATURES -->
     <section class="section" id="features">
       <div class="container">
-        <p class="eyebrow">Why DSX</p>
-        <h2>Built like a real exchange</h2>
+        <div class="section-head reveal"><div><p class="eyebrow">Trading tools</p><h2>Built like a pro platform</h2></div></div>
         <div class="features">
-          <article class="feature glass">
-            <div class="f-ic">⚡</div>
-            <h3>Real-time prices</h3>
-            <p>Crypto streams tick-by-tick from live order books. Stocks, metals and forex update every few seconds.</p>
-          </article>
-          <article class="feature glass">
-            <div class="f-ic">◎</div>
-            <h3>Five asset classes</h3>
-            <p>Bitcoin next to gold next to NVIDIA. Move between them instantly from a single USD balance.</p>
-          </article>
-          <article class="feature glass">
-            <div class="f-ic">⌖</div>
-            <h3>Market &amp; limit orders</h3>
-            <p>Buy at the market or set your price. Limit orders fill automatically the moment the market reaches them.</p>
-          </article>
-          <article class="feature glass">
-            <div class="f-ic">▲</div>
-            <h3>Live P&amp;L</h3>
-            <p>Track positions, average cost and unrealized profit as prices move — in real time.</p>
-          </article>
+          <article class="card feature reveal"><div class="f-ic">⚡</div><h3>Up to 20x leverage</h3><p>Pick any leverage from 1x to 20x per position. Isolated margin means each trade risks only its own margin.</p></article>
+          <article class="card feature reveal"><div class="f-ic">⇅</div><h3>Long &amp; short</h3><p>Profit from moves in either direction on every market — crypto, Solana tokens, metals, stocks, indices and forex.</p></article>
+          <article class="card feature reveal"><div class="f-ic">◎</div><h3>Stop loss &amp; take profit</h3><p>Attach SL/TP when you open, or edit them later. They trigger automatically on live prices.</p></article>
+          <article class="card feature reveal"><div class="f-ic">⚠</div><h3>Liquidation shown upfront</h3><p>See liquidation price, margin, fees and position size before you click — no surprises.</p></article>
+          <article class="card feature reveal"><div class="f-ic">⌁</div><h3>Real market data</h3><p>Crypto streams tick-by-tick from Coinbase order books; stocks, metals and forex from Yahoo Finance.</p></article>
+          <article class="card feature reveal"><div class="f-ic">▤</div><h3>Pro terminal</h3><p>Candlestick charts with moving averages, live PnL, open orders, position history and win rate.</p></article>
         </div>
       </div>
     </section>
 
-    <section class="section" id="how">
+    <section class="section">
       <div class="container">
-        <p class="eyebrow">How it works</p>
-        <h2>From zero to first trade in 30 seconds</h2>
+        <div class="section-head reveal"><div><p class="eyebrow">How it works</p><h2>First trade in 30 seconds</h2></div></div>
         <ol class="steps">
-          <li class="glass"><span class="step-n num">01</span><h3>Open a demo account</h3><p>Sign up — or skip it and try as a guest. You get $100,000 in demo funds.</p></li>
-          <li class="glass"><span class="step-n num">02</span><h3>Pick a market</h3><p>Choose from crypto, metals, stocks, indices and forex with live charts.</p></li>
-          <li class="glass"><span class="step-n num">03</span><h3>Trade at live prices</h3><p>Place market or limit orders and watch your portfolio move with the market.</p></li>
+          <li class="card reveal"><span class="step-n num">01</span><h3>Open a demo account</h3><p>Sign up or continue as a guest — you get $100,000 in demo funds instantly.</p></li>
+          <li class="card reveal"><span class="step-n num">02</span><h3>Choose market &amp; leverage</h3><p>Pick SOL, BTC, gold or any of the markets, then set leverage from 1x to 20x.</p></li>
+          <li class="card reveal"><span class="step-n num">03</span><h3>Go long or short</h3><p>Add stop loss and take profit, place the order and track PnL live.</p></li>
         </ol>
       </div>
     </section>
 
     <section class="section">
       <div class="container">
-        <div class="cta glass">
+        <div class="cta card edge-glow reveal">
           <div>
             <h2>Ready to trade?</h2>
             <p class="muted">Your $100,000 demo account is one click away.</p>
           </div>
-          <button class="btn btn-primary btn-lg" data-auth="signup">Start trading now</button>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg" data-auth="signup">Start trading now</button>
+            <a class="btn btn-lg" href="/trade">Open terminal</a>
+          </div>
         </div>
       </div>
     </section>
@@ -139,12 +214,12 @@
 
   <footer class="footer">
     <div class="container footer-inner">
-      <a href="/" class="logo"><span class="logo-mark">DS</span>DSX</a>
-      <p class="muted small">Demo trading with virtual funds. Prices from public market data feeds; some markets may be delayed. Nothing on DSX is financial advice.</p>
-      <p class="muted small">© <span id="year"></span> DSX</p>
+      <a href="/" class="brand"><img src="/img/ag-mark.svg" alt="" width="34" height="34"><span class="brand-word"><b>AG</b><span>EXCHANGE</span></span></a>
+      <p class="muted small">Demo trading with virtual funds — no real money is involved. Prices come from public market-data feeds (Coinbase, Yahoo Finance); futures and some stock quotes may be delayed. Leveraged trading carries a high risk of loss. Nothing here is financial advice.</p>
+      <p class="muted small">© <span id="year"></span> AG Exchange</p>
     </div>
   </footer>
 
-  <script type="module" src="/js/landing.js"></script>
+  <script type="module" src="/js/home.js"></script>
 </body>
 </html>

@@ -1,12 +1,13 @@
 {
-  "name": "dsx",
+  "name": "ag-exchange",
   "version": "0.1.0",
   "private": true,
-  "description": "DSX \u2014 multi-asset exchange with live prices and demo trading",
+  "description": "AG Exchange \u2014 multi-asset leveraged trading with live prices and demo accounts",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
-    "dev": "node --watch server/index.js"
+    "dev": "node --watch server/index.js",
+    "test": "node --test test/engine.test.js"
   },
   "engines": {
     "node": ">=22.5"
