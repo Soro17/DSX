@@ -22,8 +22,9 @@
   <path d="M10 19 H14.5 A7.5 13 0 0 1 14.5 45 H10 Z" stroke="url(#dsx-silver)" stroke-width="4.4" stroke-linejoin="miter"/>
   <!-- S -->
   <path d="M36.6 22.6 C35 19.6 32.6 19 30.6 19 C27.4 19 25.6 21.2 25.6 24.6 C25.6 28.4 28.8 29.6 31.4 30.6 C34.4 31.8 37.2 33.2 37.2 37.6 C37.2 42.2 34.4 45 30.8 45 C28.4 45 26 43.8 24.8 41.2" stroke="url(#dsx-silver)" stroke-width="4.4" stroke-linecap="round"/>
-  <!-- X: falling leg silver, rising leg is a green zig-zag trend arrow -->
+  <!-- X: falling leg silver, rising leg is a green zig-zag trend arrow (dark outline keeps the crossing clean) -->
   <path d="M42.5 19 L55.5 45" stroke="url(#dsx-silver)" stroke-width="4.4"/>
-  <path d="M41 47 L45.6 35.6 L50.2 41.6 L54.6 23.4" stroke="url(#dsx-up)" stroke-width="4.2" stroke-linejoin="miter" stroke-miterlimit="6"/>
-  <path d="M57 14.6 L59.6 24.2 L51.4 22.2 Z" fill="#3BF0A8" stroke="#3BF0A8" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M41 46.8 L44.4 39.6 L47.4 42.6 L55.6 21.3" stroke="#0c0c18" stroke-width="5.6" stroke-linejoin="round"/>
+  <path d="M41 46.8 L44.4 39.6 L47.4 42.6 L55.6 21.3" stroke="url(#dsx-up)" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M57 15.5 L59.3 24 L51.4 21.9 Z" fill="#3BF0A8" stroke="#3BF0A8" stroke-width="1.2" stroke-linejoin="round"/>
 </svg>
