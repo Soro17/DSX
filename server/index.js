@@ -1,3 +1,10 @@
+// Friendly check before anything loads: DSX needs Node's built-in SQLite (Node 22.5+).
+const [major, minor] = process.versions.node.split('.').map(Number);
+if (major < 22 || (major === 22 && minor < 5)) {
+  console.error(`\nDSX needs Node.js 22.5 or newer — you have ${process.version}.\nDownload the current LTS from https://nodejs.org and run "npm start" again.\n`);
+  process.exit(1);
+}
+
 const http = require('node:http');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -137,5 +144,12 @@ engine.events.on('order', (userId, order) => {
 });
 
 // ---------------------------------------------------------------- boot
-server.listen(PORT, () => console.log(`DSX running on http://localhost:${PORT}`));
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\nPort ${PORT} is already in use. Close the other program or run with another port, e.g. PORT=3001 npm start\n`);
+    process.exit(1);
+  }
+  throw err;
+});
+server.listen(PORT, () => console.log(`\n  DSX is running → open http://localhost:${PORT} in your browser\n`));
 prices.start().catch((err) => console.error('[prices] failed to start', err));
