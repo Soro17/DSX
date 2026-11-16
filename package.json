@@ -5,8 +5,8 @@
   "description": "DSX \u2014 multi-asset exchange with live prices and demo trading",
   "main": "server/index.js",
   "scripts": {
-    "start": "node --no-warnings --experimental-sqlite server/index.js",
-    "dev": "node --no-warnings --experimental-sqlite --watch server/index.js"
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
   },
   "engines": {
     "node": ">=22.5"

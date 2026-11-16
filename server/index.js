@@ -4,6 +4,20 @@ if (major < 22 || (major === 22 && minor < 5)) {
   console.error(`\nDSX needs Node.js 22.5 or newer — you have ${process.version}.\nDownload the current LTS from https://nodejs.org and run "npm start" again.\n`);
   process.exit(1);
 }
+// Hide Node's "SQLite is experimental" notice on versions that still print it.
+const emit = process.emitWarning;
+process.emitWarning = (w, ...rest) => (String(w).includes('SQLite') ? undefined : emit.call(process, w, ...rest));
+// Node 22.5–22.12 only expose node:sqlite behind a flag: restart once with it.
+try {
+  require('node:sqlite');
+} catch {
+  if (!process.execArgv.includes('--experimental-sqlite')) {
+    const { status } = require('node:child_process').spawnSync(
+      process.execPath, ['--experimental-sqlite', ...process.execArgv, ...process.argv.slice(1)], { stdio: 'inherit' });
+    process.exit(status ?? 1);
+  }
+  throw new Error('node:sqlite is unavailable in this Node.js build.');
+}
 
 const http = require('node:http');
 const path = require('node:path');
