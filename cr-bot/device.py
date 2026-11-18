@@ -11,9 +11,15 @@ class Device:
     def __init__(self, adb=config.ADB_PATH, serial=config.DEVICE):
         self.adb = adb
         self.serial = serial
-        if serial and ":" in serial:
-            # Network devices (emulators) need an explicit connect.
-            subprocess.run([adb, "connect", serial], capture_output=True, timeout=10)
+        try:
+            if serial and ":" in serial:
+                # Network devices (emulators) need an explicit connect.
+                subprocess.run([adb, "connect", serial], capture_output=True, timeout=10)
+        except FileNotFoundError:
+            raise SystemExit(
+                "Could not find adb. Install BlueStacks 5, or download Android "
+                "platform-tools and unzip it into the cr-bot folder (cr-bot\\platform-tools\\adb.exe)."
+            )
         self.width, self.height = self.screenshot().shape[1::-1]
         if self.width > self.height:
             raise SystemExit(

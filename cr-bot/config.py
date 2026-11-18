@@ -9,7 +9,17 @@ If something is off on your emulator, run `python calibrate.py` and adjust here.
 # ---- Emulator / ADB --------------------------------------------------------
 # BlueStacks: Settings > Advanced > Android Debug Bridge = ON, it shows the port.
 # LDPlayer / MEmu / Nox use other ports (5555, 21503, 62001 ...).
-ADB_PATH = "adb"                  # or full path, e.g. r"C:\platform-tools\adb.exe"
+import os as _os
+import shutil as _shutil
+
+# Use adb from PATH, otherwise the one that ships with BlueStacks / platform-tools.
+_ADB_CANDIDATES = [
+    r"C:\Program Files\BlueStacks_nxt\HD-Adb.exe",
+    r"C:\Program Files\BlueStacks\HD-Adb.exe",
+    _os.path.join(_os.path.dirname(__file__), "platform-tools", "adb.exe"),
+    r"C:\platform-tools\adb.exe",
+]
+ADB_PATH = _shutil.which("adb") or next((p for p in _ADB_CANDIDATES if _os.path.exists(p)), "adb")
 DEVICE = "127.0.0.1:5555"         # set to None to use the only connected device
 
 # ---- Hand (the 4 playable cards at the bottom) -----------------------------
