@@ -2,3 +2,6 @@ node_modules/
 data/
 *.log
 .env
+cr-bot/templates/
+__pycache__/
+cr-bot/*.png
