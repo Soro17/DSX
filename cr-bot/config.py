@@ -20,7 +20,7 @@ _ADB_CANDIDATES = [
     r"C:\platform-tools\adb.exe",
 ]
 ADB_PATH = _shutil.which("adb") or next((p for p in _ADB_CANDIDATES if _os.path.exists(p)), "adb")
-DEVICE = "127.0.0.1:5555"         # set to None to use the only connected device
+DEVICE = "127.0.0.1:6610"         # set to None to use the only connected device
 
 # ---- Hand (the 4 playable cards at the bottom) -----------------------------
 HAND_SLOTS = [(0.335, 0.885), (0.505, 0.885), (0.675, 0.885), (0.845, 0.885)]
