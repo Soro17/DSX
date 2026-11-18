@@ -5,3 +5,4 @@ data/
 cr-bot/templates/
 __pycache__/
 cr-bot/*.png
+cr-bot.zip
